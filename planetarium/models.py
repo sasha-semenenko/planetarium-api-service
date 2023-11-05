@@ -1,16 +1,10 @@
+import os
+import uuid
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-
-class AstronomyShow(models.Model):
-    title = models.CharField(max_length=64)
-    description = models.TextField()
-
-    class Meta:
-        ordering = ["title"]
-
-    def __str__(self) -> str:
-        return self.title
+from django.utils.text import slugify
 
 
 class ShowTheme(models.Model):
@@ -18,6 +12,27 @@ class ShowTheme(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+def astronomy_show_image_file_path(instance, filename):
+    _, extension = os.path.splitext(filename)
+    return os.path.join(
+        "uploads/astronomy_show/",
+        f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
+    )
+
+
+class AstronomyShow(models.Model):
+    title = models.CharField(max_length=64)
+    description = models.TextField()
+    show_theme = models.ManyToManyField(ShowTheme, null=True, related_name="astronomy_show")
+    image = models.ImageField(null=True, upload_to=astronomy_show_image_file_path)
+
+    class Meta:
+        ordering = ["title"]
+
+    def __str__(self) -> str:
+        return self.title
 
 
 class PlanetariumDome(models.Model):

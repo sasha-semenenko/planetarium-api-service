@@ -1,14 +1,17 @@
 from datetime import datetime
 
 from django.db.models import F, Count
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from planetarium.models import AstronomyShow, ShowTheme, PlanetariumDome, ShowSession, Reservation
 from planetarium.serializers import AstronomyShowSerializer, ShowThemeSerializers, PlanetariumDomeSerializer, \
     ShowSessionSerializer, ShowSessionListSerializer, ShowSessionDetailSerializer, ReservationSerializer, \
-    ReservationListSerializer
+    ReservationListSerializer, AstronomyShowImageSerializer, AstronomyShowListSerializer, AstronomyShowDetailSerializer
 
 
 class AstronomyShowViewSet(
@@ -19,6 +22,36 @@ class AstronomyShowViewSet(
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
 
+    def get_queryset(self):
+        title = self.request.query_params.get("title")
+        queryset = self.queryset
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        return queryset.distinct()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AstronomyShowListSerializer
+        if self.action == "retrieve":
+            return AstronomyShowDetailSerializer
+        if self.action == "upload_image":
+            return AstronomyShowImageSerializer
+        return AstronomyShowSerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsAdminUser]
+    )
+    def upload_image(self, request, pk=None):
+        astronomy_show = self.get_object()
+        serializer = self.get_serializer(astronomy_show, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ShowThemeViewSet(
     mixins.CreateModelMixin,
