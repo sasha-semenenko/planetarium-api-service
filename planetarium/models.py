@@ -25,7 +25,7 @@ def astronomy_show_image_file_path(instance, filename):
 class AstronomyShow(models.Model):
     title = models.CharField(max_length=64)
     description = models.TextField()
-    show_theme = models.ManyToManyField(ShowTheme, null=True, related_name="astronomy_show")
+    show_theme = models.ManyToManyField(ShowTheme, related_name="astronomy_show")
     image = models.ImageField(null=True, upload_to=astronomy_show_image_file_path)
 
     class Meta:
