@@ -20,6 +20,7 @@ from planetarium.serializers import AstronomyShowSerializer, ShowThemeSerializer
 class AstronomyShowViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     GenericViewSet
 ):
     queryset = AstronomyShow.objects.prefetch_related("show_theme")
@@ -106,29 +107,29 @@ class PlanetariumDomeViewSet(
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
-    queryset = ShowSession.objects.all()\
-        .select_related("astronomy_show", "planetarium_dome")\
-        .annotate(tickets_available=(
-            F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
-            - Count("tickets"))
-    )
+    queryset = ShowSession.objects.select_related("astronomy_show", "planetarium_dome")
     serializer_class = ShowSessionSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
+        queryset = self.queryset
+        if self.action == "LIST":
+            queryset = queryset.select_related("astronomy_show", "planetarium_dome") \
+                .annotate(tickets_available=(
+                    F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
+                    - Count("tickets"))
+            )
         date = self.request.query_params.get("date")
         astronomy_show_id_str = self.request.query_params.get("astronomy_show")
-
-        queryset = self.queryset
 
         if date:
             date = datetime.strptime(date, "%Y-%m-%d").date()
             queryset = queryset.filter(show_time__date=date)
 
         if astronomy_show_id_str:
-            queryset = queryset.filter(astronomy_show_id=int(astronomy_show_id_str))
+            queryset = queryset.filter(astronomy_show_id=astronomy_show_id_str)
 
-        return queryset
+        return queryset.distinct()
 
     def get_serializer_class(self):
         if self.action == "list":

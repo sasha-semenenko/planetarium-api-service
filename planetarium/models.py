@@ -25,7 +25,7 @@ def astronomy_show_image_file_path(instance, filename):
 class AstronomyShow(models.Model):
     title = models.CharField(max_length=64)
     description = models.TextField()
-    show_theme = models.ManyToManyField(ShowTheme, related_name="astronomy_show")
+    show_theme = models.ManyToManyField(ShowTheme, blank=True, related_name="astronomy_show")
     image = models.ImageField(null=True, upload_to=astronomy_show_image_file_path)
 
     class Meta:
@@ -37,8 +37,8 @@ class AstronomyShow(models.Model):
 
 class PlanetariumDome(models.Model):
     name = models.CharField(max_length=64)
-    rows = models.IntegerField()
-    seats_in_row = models.IntegerField()
+    rows = models.IntegerField(default=0)
+    seats_in_row = models.IntegerField(default=0)
 
     @property
     def capacity(self) -> int:
@@ -51,7 +51,7 @@ class PlanetariumDome(models.Model):
 class ShowSession(models.Model):
     astronomy_show = models.ForeignKey(AstronomyShow, on_delete=models.CASCADE)
     planetarium_dome = models.ForeignKey(PlanetariumDome, on_delete=models.CASCADE)
-    show_time = models.DateTimeField(auto_now_add=True)
+    show_time = models.DateTimeField()
 
     class Meta:
         ordering = ["-show_time"]
@@ -61,7 +61,7 @@ class ShowSession(models.Model):
 
 
 class Reservation(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
