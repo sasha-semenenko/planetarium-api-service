@@ -12,9 +12,19 @@ from rest_framework.viewsets import GenericViewSet
 
 from planetarium.models import AstronomyShow, ShowTheme, PlanetariumDome, ShowSession, Reservation
 from planetarium.permissions import IsAdminOrIfAuthenticatedReadOnly
-from planetarium.serializers import AstronomyShowSerializer, ShowThemeSerializers, PlanetariumDomeSerializer, \
-    ShowSessionSerializer, ShowSessionListSerializer, ShowSessionDetailSerializer, ReservationSerializer, \
-    ReservationListSerializer, AstronomyShowImageSerializer, AstronomyShowListSerializer, AstronomyShowDetailSerializer
+from planetarium.serializers import (
+    AstronomyShowSerializer,
+    ShowThemeSerializers,
+    PlanetariumDomeSerializer,
+    ShowSessionSerializer,
+    ShowSessionListSerializer,
+    ShowSessionDetailSerializer,
+    ReservationSerializer,
+    ReservationListSerializer,
+    AstronomyShowImageSerializer,
+    AstronomyShowListSerializer,
+    AstronomyShowDetailSerializer
+)
 
 
 class AstronomyShowViewSet(
@@ -113,7 +123,7 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.queryset
-        if self.action == "LIST":
+        if self.action == "list":
             queryset = queryset.select_related("astronomy_show", "planetarium_dome") \
                 .annotate(tickets_available=(
                     F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
