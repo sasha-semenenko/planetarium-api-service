@@ -13,12 +13,12 @@ cd planetarium-api-service
 python3 -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-python manage.py migrate
 ```
 
 Fill .env file with data according to .env_sample file
 
 ```shell
+python manage.py migrate
 python manage.py runserver 
 ```
 
